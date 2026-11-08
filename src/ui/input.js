@@ -1,7 +1,7 @@
 // Turns keyboard and touch input into named actions. The game decides what an
 // action means in its current mode.
-//   held:    'left' 'right' 'down' (down/up both reported)
-//   presses: 'up', 'rotCW', 'rotCCW', 'hold', 'primary' (Space / touch drop),
+//   held:    'left' 'right' (down/up both reported)
+//   presses: 'down', 'up', 'rotCW', 'rotCCW', 'hold', 'primary' (Space / touch drop),
 //            'confirm' (Enter), 'restart' (R), 'pause' (Esc / P), 'mute' (M), 'music' (N)
 const KEYMAP = {
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',

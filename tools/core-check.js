@@ -4,7 +4,7 @@
 // (check-core.html). Returns the number of failed checks.
 import { COLS, ROWS } from '../src/config.js';
 import { TYPES, ROTATIONS } from '../src/core/pieces.js';
-import { createGame, move, rotate, hardDrop, holdPiece, tick } from '../src/core/engine.js';
+import { createGame, move, rotate, softDrop, hardDrop, holdPiece, tick } from '../src/core/engine.js';
 import { createPilot, pilotStep } from '../src/core/bot.js';
 import { MODES } from '../src/data/modes.js';
 
@@ -69,6 +69,20 @@ export function runChecks(log = console.log) {
     check('second hold in a row is refused', !holdPiece(s));
     hardDrop(s);
     check('hold works again after locking', holdPiece(s) && s.cur.type === first);
+  }
+
+  // ↓ drop: 10 rows per press, stops at the floor without locking
+  {
+    const s = createGame(mode('sprint'), 5);
+    const y0 = s.cur.y, score0 = s.score;
+    const d1 = softDrop(s, 10);
+    check('↓ moves the piece down 10 rows', d1 === 10 && s.cur.y === y0 + 10 && s.score === score0 + 10);
+    const d2 = softDrop(s, 10);
+    check('second ↓ stops at the floor', d2 > 0 && d2 < 10 && softDrop(s, 10) === 0, `${d2} rows`);
+    check('↓ does not lock the piece', s.pieces === 0);
+    let t = 0;
+    while (s.pieces === 0 && t < 2) { tick(s, 1 / 60); t += 1 / 60; }
+    check('the piece locks after the lock delay', s.pieces === 1 && t > 0.45, `${t.toFixed(2)}s`);
   }
 
   // Lock delay: a grounded piece locks on its own

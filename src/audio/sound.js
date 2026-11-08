@@ -36,6 +36,7 @@ export const sound = {
   move() { this.tone('square', 480, 460, .03, .035); },
   rotate() { this.tone('triangle', 660, 880, .05, .07); },
   hold() { this.tone('sine', 380, 760, .12, .12); },
+  softDrop() { this.tone('triangle', 520, 260, .08, .08); },
   drop() { this.noise(.14, .3, 1400, 90); this.tone('triangle', 170, 55, .14, .22); },
   lock() { this.tone('triangle', 240, 190, .06, .1); },
   /** n lines at once; the pitch climbs with the combo count. */

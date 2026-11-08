@@ -1,9 +1,9 @@
 // Game flow: modes (menu / play / pause / over / result), starting a mode,
 // ending, records, and turning input into actions (with key repeat for
 // sideways movement). Connects the simulation to rendering, sound and UI.
-import { DAS, ARR } from './config.js';
+import { DAS, ARR, SOFT_DROP_ROWS } from './config.js';
 import { MODES } from './data/modes.js';
-import { createGame, move, rotate, hardDrop, holdPiece, tick } from './core/engine.js';
+import { createGame, move, rotate, softDrop, hardDrop, holdPiece, tick } from './core/engine.js';
 import { createPilot, pilotStep } from './core/bot.js';
 import { save, writeSave } from './util/storage.js';
 import { sound } from './audio/sound.js';
@@ -16,7 +16,7 @@ export const G = {
   game: null,     // engine state (the demo game while in the menu)
   modeIdx: 0,     // mode being played
   sel: 0,         // highlighted menu entry
-  held: { left: false, right: false, down: false },
+  held: { left: false, right: false },
   das: { dir: 0, t: 0, a: 0 },
   endT: 0,        // seconds since the game ended
   pilot: null,    // ?autoplay: bot playing the real game
@@ -30,6 +30,7 @@ function makeEvents(quiet) {
     move: () => S && S.move(),
     rotate: () => S && S.rotate(),
     hold: () => S && S.hold(),
+    softDrop: (cells, d) => { fx.drop(cells, d, true); if (S) S.softDrop(); },
     hardDrop: (cells, d) => { fx.drop(cells, d); if (S) S.drop(); },
     lock: cells => { fx.lock(cells); if (S) S.lock(); },
     clear: info => { fx.clear(info); if (S) S.clear(info.n, info.combo); },
@@ -40,7 +41,7 @@ function makeEvents(quiet) {
 }
 
 function resetInput() {
-  G.held.left = G.held.right = G.held.down = false;
+  G.held.left = G.held.right = false;
   G.das.dir = 0;
 }
 
@@ -171,7 +172,7 @@ export function onAction(a, down, repeat) {
   }
   if (a === 'down') {
     if (G.mode === 'menu') { if (down) moveSelection(2); return; }
-    G.held.down = down;
+    if (down && !repeat && playing) softDrop(s, SOFT_DROP_ROWS);
     return;
   }
   if (!down || repeat) return;
@@ -221,7 +222,7 @@ export function update(dt) {
   const s = G.game;
   if (G.mode === 'play') {
     if (G.pilot) pilotStep(G.pilot, s, dt); else updateDas(dt);
-    if (G.mode === 'play') tick(s, dt, !G.pilot && G.held.down);
+    if (G.mode === 'play') tick(s, dt);
   } else if (G.mode === 'menu') {
     pilotStep(G.demo, s, dt);
     tick(s, dt);

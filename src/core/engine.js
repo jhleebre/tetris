@@ -3,11 +3,11 @@
 // through the `events` callbacks so rendering and sound stay outside.
 //
 // events (all optional):
-//   spawn(piece) move() rotate() hold() hardDrop(cells, rows) lock(cells, type)
+//   spawn(piece) move() rotate() hold() softDrop(cells, rows) hardDrop(cells, rows) lock(cells, type)
 //   clear({rows, n, cells, combo, b2b, perfect, points}) level(lv)
 //   over(reason) win(reason)
 import {
-  ROWS, HIDDEN, NEXT_COUNT, LOCK_DELAY, MAX_LOCK_RESETS, SOFT_DROP_INTERVAL, MAX_LEVEL,
+  ROWS, HIDDEN, NEXT_COUNT, LOCK_DELAY, MAX_LOCK_RESETS, MAX_LEVEL,
   LINE_SCORE, COMBO_SCORE, PERFECT_SCORE, COLS, gravityInterval,
 } from '../config.js';
 import { GARBAGE, kicks, spawnX } from './pieces.js';
@@ -115,6 +115,21 @@ export function rotate(s, dir) {
   return false;
 }
 
+/**
+ * Moves the piece down up to n rows at once (1 point per row). Unlike a hard
+ * drop it does not lock: a piece that reaches the floor still gets the lock delay.
+ */
+export function softDrop(s, n) {
+  if (s.over) return 0;
+  let d = 0;
+  while (d < n && canFall(s)) { fall(s); d++; }
+  if (!d) return 0;
+  s.gAcc = 0;
+  s.score += d;
+  emit(s, 'softDrop', pieceCells(s.cur), d);
+  return d;
+}
+
 export function hardDrop(s) {
   if (s.over) return;
   let d = 0;
@@ -135,8 +150,8 @@ export function holdPiece(s) {
   return true;
 }
 
-/** Advances time: gravity, soft drop, lock delay, time limit. */
-export function tick(s, dt, soft = false) {
+/** Advances time: gravity, lock delay, time limit. */
+export function tick(s, dt) {
   if (s.over) return;
   s.time += dt;
   if (s.mode.timeLimit && s.time >= s.mode.timeLimit) {
@@ -144,13 +159,11 @@ export function tick(s, dt, soft = false) {
     return end(s, true, 'time');
   }
   const g = gravityInterval(s.level);
-  const interval = soft ? Math.min(g, SOFT_DROP_INTERVAL) : g;
   s.gAcc += dt;
-  for (let n = 0; s.gAcc >= interval && n < ROWS; n++) {
+  for (let n = 0; s.gAcc >= g && n < ROWS; n++) {
     if (!canFall(s)) { s.gAcc = 0; break; }
-    s.gAcc -= interval;
+    s.gAcc -= g;
     fall(s);
-    if (soft) s.score += 1;
   }
   if (!canFall(s)) {
     s.lockT += dt;

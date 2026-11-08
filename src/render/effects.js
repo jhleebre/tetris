@@ -10,11 +10,13 @@ let shakeT = 0, shakeAmp = 0;
 const CLEAR_NAMES = ['', '한 줄', '두 줄', '세 줄', '네 줄!'];
 
 export const fx = {
-  drop(cells, d) {
+  /** light: the 10-row ↓ drop (fainter, no shake). */
+  drop(cells, d, light = false) {
     if (d < 1) return;
     const top = {};
     for (const [x, y] of cells) if (top[x] === undefined || y < top[x]) top[x] = y;
-    for (const x in top) streaks.push({ x: +x, y0: top[x] - d, y1: top[x], t: 0, life: .22 });
+    for (const x in top) streaks.push({ x: +x, y0: top[x] - d, y1: top[x], t: 0, life: light ? .16 : .22, a: light ? .18 : .35 });
+    if (light) return;
     for (const [x, y] of cells) for (let i = 0; i < 2; i++) {
       parts.push({ x: x + Math.random(), y: y + 1, vx: (Math.random() - .5) * 4, vy: -Math.random() * 3, t: 0, life: .35, c: '#ffffff', r: .07 });
     }
@@ -68,7 +70,7 @@ export function drawEffects(g, L) {
   for (const s of streaks) {
     const k = 1 - s.t / s.life, y0 = Math.max(HIDDEN, s.y0);
     const grad = g.createLinearGradient(0, Y(y0), 0, Y(s.y1));
-    grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, `rgba(255,255,255,${.35 * k})`);
+    grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, `rgba(255,255,255,${s.a * k})`);
     g.fillStyle = grad;
     g.fillRect(X(s.x) + cs * .15, Y(y0), cs * .7, Y(s.y1) - Y(y0));
   }
