@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>코어 확인</title>
+<style>
+  body{background:#05061a;color:#f3f5ff;font:14px/1.6 ui-monospace,Menlo,monospace;padding:16px}
+  .ok{color:#3ee0a1}.fail{color:#ff5a5a;font-weight:bold}
+</style>
+</head>
+<body>
+<h3>게임 로직 확인 (로컬 서버에서 열기)</h3>
+<pre id="out">실행 중…</pre>
+<script type="module">
+import { runChecks } from './core-check.js';
+const out = document.getElementById('out'); out.textContent = '';
+setTimeout(() => {
+  const failed = runChecks((line, ok) => {
+    const s = document.createElement('div'); s.className = ok ? 'ok' : 'fail'; s.textContent = line; out.appendChild(s);
+  });
+  document.title = failed ? `실패 ${failed}` : '모두 통과';
+  window.__checkFailed = failed;
+});
+</script>
+</body>
+</html>
