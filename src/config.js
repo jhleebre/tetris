@@ -13,7 +13,7 @@ export const ARR = 0.035;
 // at most MAX_LOCK_RESETS times per row reached
 export const LOCK_DELAY = 0.5;
 export const MAX_LOCK_RESETS = 15;
-export const SOFT_DROP_INTERVAL = 0.2; // seconds per row while soft dropping (5 rows/s)
+export const SOFT_DROP_INTERVAL = 0.1; // seconds per row while soft dropping (10 rows/s)
 export const MAX_LEVEL = 20;
 
 // The usual speed curve, stretched by GRAVITY_EASE so it climbs more gently.
